@@ -23,7 +23,7 @@
 }
 
 .mainBtn {
-  background: linear-gradient(45deg, #ffc75d, #ffc708);
+  background: linear-gradient(45deg, #08c0ff, #08c0ff);
   box-shadow: 0 0 24px #ffb20861;
   border: 2px solid #ffe825;
   border-radius: 100px;
@@ -34,10 +34,10 @@
 }
 
 .mainBtn:hover {
-  background-color: #ffc75d !important;
+  background-color: #08c0ff !important;
   box-shadow: 0 0 34px #ffb20861 !important;
-  text-shadow: 0 0 4px #ffe825;
-  border-color: #ffe825 !important;
+  text-shadow: 0 0 4px #08c0ff;
+  border-color: #08c0ff !important;
 }
 
 .successBtn {
@@ -86,7 +86,7 @@
 
 .jobDescriptionInput:focus {
   outline: none;
-  border-color: #ffc75d;
+  border-color: #08c0ff;
   box-shadow: 0 0 10px rgb(255 199 93 / 22%);
 }
 
@@ -111,7 +111,7 @@
 
 .disabled:hover {
   box-shadow: none !important;
-  background: linear-gradient(45deg, #ffc75d, #ffc708) !important;
+  background: linear-gradient(45deg, #08c0ff, #08c0ff) !important;
 }
 
 .jobUrlInputContainer {

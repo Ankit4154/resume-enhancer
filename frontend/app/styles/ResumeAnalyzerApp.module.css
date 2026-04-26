@@ -29,7 +29,7 @@
   height: 30px;
   border: 5px solid #fff;
   border-radius: 50%;
-  border-top-color: #ffc75d;
+  border-top-color: #5de9ff;
   animation: spin 1s ease-in-out infinite;
   -webkit-animation: spin 1s ease-in-out infinite;
 }
