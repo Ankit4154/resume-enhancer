@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import json
 import os
 import requests
-from config import GLOBAL_API_KEY, BASE_URL, ENDPOINT, MODEL
+from config import BASE_URL, ENDPOINT, MODEL
 
 
 class AIModelProvider(ABC):
@@ -22,10 +22,48 @@ class GlobalAIProvider(AIModelProvider):
                 },
             ]
         }
-        response = requests.post(url, json=payload, stream=False)
+        response = requests.post(url, json=payload, stream=True)
+        if response.status_code != 200:
+            raise ValueError(
+                f"API request failed with status {response.status_code}: {response.reason}. Response: {response.text}"
+            )
         out = ""
-        for line in response.iter_lines():
-            if line:
+        for line in response.iter_lines(decode_unicode=True):
+            if not line:
+                continue
+            try:
                 data = json.loads(line)
-                out += data.get("message", {}).get("content", "")
-        return json.loads(out)
+            except json.JSONDecodeError:
+                # Skip non-JSON lines (like thinking text or markdown)
+                continue
+
+            if isinstance(data, dict):
+                if isinstance(data.get("message"), dict):
+                    out += data["message"].get("content", "")
+                elif isinstance(data.get("content"), str):
+                    out += data["content"]
+
+        if not out:
+            try:
+                data = response.json()
+                if isinstance(data, dict):
+                    if isinstance(data.get("message"), dict):
+                        out = data["message"].get("content", "")
+                    elif isinstance(data.get("content"), str):
+                        out = data["content"]
+                    else:
+                        out = json.dumps(data)
+            except ValueError:
+                out = response.text
+        
+        out = out.strip()
+        
+        # Extract JSON object from content if it's embedded in text/markdown
+        if out and not out.startswith('{'):
+            start_idx = out.find('{')
+            if start_idx != -1:
+                end_idx = out.rfind('}')
+                if end_idx != -1:
+                    out = out[start_idx:end_idx+1]
+        
+        return out
