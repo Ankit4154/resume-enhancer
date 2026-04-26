@@ -22,6 +22,8 @@ const ResumeUploader: React.FC<Props> = ({ setResumeText, setIsLoading, setJobDe
   const [localJobDescription, setLocalJobDescription] = useState('');
   const [uploadedResumeData, setUploadedResumeData] = useState<UploadResponse | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [jobUrl, setJobUrl] = useState('');
+  const [isFetchingJobDetails, setIsFetchingJobDetails] = useState(false);
 
   const mergeTextContent = (textContent: TextContent) => {
     return textContent.items
@@ -129,6 +131,48 @@ const ResumeUploader: React.FC<Props> = ({ setResumeText, setIsLoading, setJobDe
     }
   };
 
+  const handleFetchJobDetails = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    
+    if (!jobUrl.trim()) {
+      setError('Please enter a job URL');
+      return;
+    }
+
+    setIsFetchingJobDetails(true);
+    setError('');
+
+    try {
+      const response = await fetch('http://localhost:3000/api/fetch-job-details', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: jobUrl.trim() }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to fetch job details');
+      }
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        setLocalJobDescription(data.combined);
+        setJobUrl('');
+        setError('');
+      } else {
+        throw new Error(data.message || 'Failed to fetch job details');
+      }
+    } catch (error) {
+      console.error('Fetch job details failed:', error);
+      setError(`Failed to fetch job details: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsFetchingJobDetails(false);
+    }
+  };
+
   const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent any default behavior
     
@@ -137,7 +181,7 @@ const ResumeUploader: React.FC<Props> = ({ setResumeText, setIsLoading, setJobDe
       return;
     }
     if (!localJobDescription.trim()) {
-      setError('Please paste the job description');
+      setError('Please paste the job description or fetch from URL');
       return;
     }
     
@@ -181,9 +225,40 @@ const ResumeUploader: React.FC<Props> = ({ setResumeText, setIsLoading, setJobDe
       {error && <p className={styles.errorMessage}>{error}</p>}
       
       <div className={styles.jobDescriptionContainer}>
+        <div style={{ marginBottom: '16px' }}>
+          <label className={styles.sectionLabel}>
+            Option 1: Paste Job URL
+          </label>
+          <div className={styles.jobUrlInputContainer}>
+            <input
+              type="text"
+              placeholder="Enter job posting URL (e.g., https://..."
+              value={jobUrl}
+              onChange={(e) => setJobUrl(e.target.value)}
+              className={styles.jobUrlInput}
+              disabled={isFetchingJobDetails}
+            />
+            <button
+              onClick={handleFetchJobDetails}
+              disabled={isFetchingJobDetails || !jobUrl.trim()}
+              className={styles.fetchButton}
+            >
+              {isFetchingJobDetails ? 'Fetching...' : 'Fetch Details'}
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.orSeparator}>
+          OR
+        </div>
+
+        <label className={styles.sectionLabel}>
+          Option 2: Paste Job Description Manually
+        </label>
         <textarea
           className={styles.jobDescriptionInput}
           placeholder="Paste job description here..."
+          value={localJobDescription}
           onChange={(e) => setLocalJobDescription(e.target.value)}
           rows={6}
         />

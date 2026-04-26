@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers.upload import router as upload_router
 from routers.analysis import router as analysis_router
+from routers.job_details import router as job_details_router
 #python -m uvicorn app:app --reload --port 3000
 app = FastAPI()
 app.add_middleware(
@@ -13,6 +14,7 @@ app.add_middleware(
 
 app.include_router(upload_router, prefix="/api")
 app.include_router(analysis_router, prefix="/api")
+app.include_router(job_details_router, prefix="/api")
 
 @app.get("/health")
 async def health():

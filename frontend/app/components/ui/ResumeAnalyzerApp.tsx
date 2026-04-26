@@ -65,14 +65,22 @@ const ResumeAnalyzerApp = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Analysis failed');
+        const errorText = await response.text();
+        console.error('Analysis failed with status:', response.status, errorText);
+        throw new Error(`Analysis failed with status ${response.status}`);
       }
 
       const result = await response.json();
+      console.log('Analysis result:', result);
+      
+      if (!result || typeof result !== 'object') {
+        throw new Error('Invalid response format received from server');
+      }
+
       setAnalysisResult(result);
       setShowWorth(true);
     } catch (error) {
-      console.error('Analysis failed:', error);
+      console.error('Analysis error:', error);
     } finally {
       setIsLoadingResume(false);
     }
